@@ -5,6 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.Objects;
+import java.util.UUID;
 
 @Setter
 @Getter
@@ -13,34 +19,25 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction {
-    /**
-     *	id varchar(40) NOT NULL,
-     * 	debit_account_id varchar(40) NOT NULL,
-     * 	credit_account_id varchar(40) NOT NULL,
-     * 	type INT(1) NOT NULL,
-     * 	amount DECIMAL(12.4) NOT NULL,
-     * 	fee DECIMAL(12.4) NOT NULL,
-     * 	description varchar(255) NOT NULL,
-     * 	created_at TIMESTAMP NOT NULL,
-     */
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID",
+            strategy = "com.project.bankproj.generator.UuidTimeSequenceGenerator")
+    private UUID id;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private int type;
 
     @Column(name = "amount")
-    private float amount;
+    private BigDecimal amount;
 
     @Column(name = "description")
     private String description;
 
     @Column(name = "created_at")
-    private int createdAt;
+    private Timestamp createdAt; //дата
 
     @ManyToOne()
     @JoinColumn(name = "debit_account_id",
@@ -51,4 +48,20 @@ public class Transaction {
     @JoinColumn(name = "credit_account_id",
             referencedColumnName = "id")
     private Account creditAccountId;
+
+
+    // уникальные id debit_id credit_id
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Transaction that = (Transaction) o;
+        return id.equals(that.id) && createdAt.equals(that.createdAt) && debitAccountId.equals(that.debitAccountId) &&
+                creditAccountId.equals(that.creditAccountId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, createdAt, debitAccountId, creditAccountId);
+    }
 }

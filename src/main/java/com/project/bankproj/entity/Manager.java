@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.sql.Timestamp;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -14,17 +16,10 @@ import lombok.Setter;
 @Entity
 @Table(name = "manager")
 public class Manager {
-    /**
-     * id INT NOT NULL ID_SEQ.NEXTVAL,
-     * 	first_name varchar(50) NOT NULL,
-     * 	last_name varchar(50) NOT NULL,
-     * 	status INT(1) NOT NULL,
-     * 	created_at TIMESTAMP NOT NULL,
-     * 	updated_at TIMESTAMP NOT NULL,
-     */
+
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(name = "first_name")
@@ -34,12 +29,27 @@ public class Manager {
     private String lastName;
 
     @Column(name = "status")
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     private ManagerStatus status;
 
     @Column(name = "created_at")
-    public int createdAt;
+    public Timestamp createdAt;
 
     @Column(name = "updated_at")
-    public int updatedAt;
+    public Timestamp updatedAt;
+
+
+    // уникальный id create_date
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Manager manager = (Manager) o;
+        return Objects.equals(id, manager.id) && Objects.equals(createdAt, manager.createdAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, createdAt);
+    }
 }

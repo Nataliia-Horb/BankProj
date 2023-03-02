@@ -6,9 +6,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 
+import java.sql.Timestamp;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -17,26 +21,16 @@ import java.util.Set;
 @Entity
 @Table(name = "client")
 public class Client {
-    /**
-     * 	id varchar(40) NOT NULL,
-     * 	manager_id INT NOT NULL,
-     * 	status INT(1) NOT NULL,
-     * 	tax_code varchar(20) NOT NULL,
-     * 	first_name varchar(50) NOT NULL,
-     * 	last_name varchar(50) NOT NULL,
-     * 	email varchar(60) NOT NULL,
-     * 	address varchar(80) NOT NULL,
-     * 	phone varchar(20) NOT NULL,
-     * 	created_at TIMESTAMP NOT NULL,
-     * 	updated_at TIMESTAMP NOT NULL,
-     */
+
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID",
+            strategy = "com.project.bankproj.generator.UuidTimeSequenceGenerator")
+    private UUID id;
 
     @Column(name = "status")
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     private ClientStatus status;
 
     @Column(name = "tax_code")
@@ -58,10 +52,10 @@ public class Client {
     private String phone;
 
     @Column(name = "created_at")
-    private int createdAt;
+    private Timestamp createdAt;
 
     @Column(name = "updated_at")
-    private int updatedAt;
+    private Timestamp updatedAt;
 
     @ManyToOne()
     @JoinColumn(name = "manager_id",
@@ -71,4 +65,18 @@ public class Client {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "client")
     private Set<Account> accounts = new HashSet<>();
 
+
+    // уникальный id tax_code email
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Client client = (Client) o;
+        return id.equals(client.id) && taxCode.equals(client.taxCode) && email.equals(client.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, taxCode, email);
+    }
 }

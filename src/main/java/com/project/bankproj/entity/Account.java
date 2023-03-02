@@ -8,8 +8,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
+
+import static jakarta.persistence.CascadeType.*;
 
 @Getter
 @Setter
@@ -18,53 +25,60 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Account {
-    /**
-     * `id` varchar(40) NOT NULL,
-     * `client_id` INT NOT NULL,
-     * `name` varchar(100) NOT NULL,
-     * `type` INT(1) NOT NULL,
-     * `status` INT(1) NOT NULL,
-     * `balance` DECIMAL(15,2) NOT NULL,
-     * `currency_code` INT(2) NOT NULL,
-     * `created_at` TIMESTAMP NOT NULL,
-     * `updated_at` TIMESTAMP NOT NULL,
-     */
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID",
+            strategy = "com.project.bankproj.generator.UuidTimeSequenceGenerator")
+    private UUID id;
 
     @Column(name = "name")
     private String name;
 
     @Column(name = "type")
+    @Enumerated(EnumType.ORDINAL)
     private AccountType type;
 
     @Column(name = "status")
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     private AccountStatus status;
 
     @Column(name = "balance")
-    @Enumerated(EnumType.ORDINAL)
-    private float balance;
+    private BigDecimal balance;
 
     @Column(name = "currency_code")
-    private Currencies currency;
+    @Enumerated(EnumType.ORDINAL)
+    private Currencies currency_code;
 
     @Column(name = "created_at")
-    private int createdAt;
+    private Timestamp createdAt;
 
     @Column(name = "updated_at")
-    private int updatedAt;
+    private Timestamp updatedAt;
 
-    @ManyToOne()
+    @ManyToOne(cascade = {MERGE, PERSIST, REFRESH}, fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id",
             referencedColumnName = "id")
     private Client client;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "debitAccountId")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "debitAccountId")
     private Set<Transaction> debitTransactions;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "creditAccountId")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "creditAccountId")
     private Set<Transaction> creditTransactions;
+
+
+    // Уникальный ID и Клиент
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return Objects.equals(id, account.id) && Objects.equals(client, account.client);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, client);
+    }
 }

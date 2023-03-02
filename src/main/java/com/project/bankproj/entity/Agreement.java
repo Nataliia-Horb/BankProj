@@ -1,46 +1,42 @@
 package com.project.bankproj.entity;
 
-import com.project.bankproj.entity.enums.AccountProductStatus;
+import com.project.bankproj.entity.enums.AgreementStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.Objects;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name="agreement")
+@Table(name = "agreement")
 public class Agreement {
-    /**
-     * id INT NOT NULL ID_SEQ.NEXTVAL,
-     * 	account_id varchar(40) NOT NULL,
-     * 	product_id INT NOT NULL,
-     * 	status INT(1) NOT NULL,
-     * 	interest_rate decimal(10,5) NULL
-     * 	created_at TIMESTAMP NOT NULL,
-     * 	updated_at TIMESTAMP NOT NULL,
-     */
-
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private AccountProductStatus status;
-
     @Column(name = "interest_rate")
-    private float interestRate;
+    private BigDecimal interestRate;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.ORDINAL)
+    private AgreementStatus status;
+
+    @Column(name = "sum")
+    private BigDecimal sum;
 
     @Column(name = "created_at")
-    private int createdAt;
+    private Timestamp createdAt;
 
     @Column(name = "updated_at")
-    private int updatedAt;
+    private Timestamp updatedAt;
 
     @ManyToOne()
     @JoinColumn(name = "account_id",
@@ -52,4 +48,18 @@ public class Agreement {
             referencedColumnName = "id")
     private Product product;
 
+
+    // уникальные ID account_ID product_ID
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Agreement agreement = (Agreement) o;
+        return Objects.equals(id, agreement.id) && Objects.equals(account, agreement.account) && Objects.equals(product, agreement.product);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, account, product);
+    }
 }
